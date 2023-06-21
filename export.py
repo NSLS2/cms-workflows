@@ -1,3 +1,4 @@
+import os
 from shutil import copy2, copytree
 
 from pathlib import Path
@@ -123,20 +124,26 @@ def export(ref, subdirs=True):
     full_uid = run.start["uid"]
     # print(f"{full_uid = }")
     logger.info(f"{full_uid = }")
-    cycle = run.start["experiment_cycle"].replace("_", "-")
+    cycle = run.start.get("experiment_cycle").replace("_", "-")
     # print(f"{cycle = }")
     logger.info(f"{cycle = }")
-    proposal_num = run.start["experiment_proposal_number"]
+    proposal_num = run.start.get("experiment_proposal_number")
     # print(f"{proposal_num = }")
     logger.info(f"{proposal_num = }")
     # exp_alias_dir = run.start["experiment_alias_directory"]
     # dest_dir = exp_alias_dir
     dest_dir = f"/nsls2/data/cms/proposals/{cycle}/pass-{proposal_num}/"
-    dets = run.start["detectors"]
-    savename = run.start["filename"]
+    dets = run.start.get("detectors")
+    savename = run.start.get("filename")
 
     resource_paths = get_det_file_paths(run)
     for i, det in enumerate(dets):
         source = str(resource_paths[i])
+        if not os.path.exists(source):
+            logger.info(f"{source} doesn't exist. Not copying files for {full_uid}.")
+            return
         dest = get_data_filename(det, dest_dir, savename, subdirs=subdirs)
+        if not os.path.exists(dest):
+            logger.info(f"Destination {dest} doesn't exist. Not copying files for {full_uid}.")
+            return
         copy_file(source, dest)
