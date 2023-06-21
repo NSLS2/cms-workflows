@@ -133,6 +133,9 @@ def export(ref, subdirs=True):
     # exp_alias_dir = run.start["experiment_alias_directory"]
     # dest_dir = exp_alias_dir
     dest_dir = f"/nsls2/data/cms/proposals/{cycle}/pass-{proposal_num}/"
+    if not os.path.exists(dest_dir):
+        logger.info(f"Directory {dest_dir} doesn't exist. Not copying files for {full_uid}.")
+        return
     dets = run.start.get("detectors")
     savename = run.start.get("filename")
 
@@ -143,7 +146,4 @@ def export(ref, subdirs=True):
             logger.info(f"{source} doesn't exist. Not copying files for {full_uid}.")
             return
         dest = get_data_filename(det, dest_dir, savename, subdirs=subdirs)
-        if not os.path.exists(dest):
-            logger.info(f"Destination {dest} doesn't exist. Not copying files for {full_uid}.")
-            return
         copy_file(source, dest)
