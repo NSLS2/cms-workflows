@@ -140,6 +140,9 @@ def export(ref, subdirs=True):
         return
     dets = run.start.get("detectors")
     savename = run.start.get("filename")
+    if savename is None:
+        logger.info(f"Couldn't get 'savename'. Not copying files for {full_uid}.")
+        return
 
     resource_paths = get_det_file_paths(run)
     for i, det in enumerate(dets):
