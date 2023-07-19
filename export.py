@@ -113,6 +113,8 @@ def get_data_filename(detector, dest_dir, savename, subdirs=True):
             logger.warn(f"WARNING: Can't do file handling for detector '{detector}'.")
             return
 
+    # Create subdirs
+    Path(f"{dest_dir}{subdir}").mkdir(parents=True, exist_ok=True)
     file_name = f"{dest_dir}{subdir}{savename}_{detname}.tiff"
     return file_name
 
