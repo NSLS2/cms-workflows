@@ -18,7 +18,7 @@ from event_model import compose_run
 from typing import Iterable, TypedDict
 
 
-tiled_client = from_profile("nsls2", username=None)["cms"]
+tiled_client = from_profile("nsls2")["cms"]
 tiled_client_raw = tiled_client["raw"]
 # tiled_client_processed = tiled_client["sandbox"]
 cms_sandbox_tiled_client = tiled_client["bluesky_sandbox"]
