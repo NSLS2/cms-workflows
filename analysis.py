@@ -221,7 +221,7 @@ def output_reduced_document(name, doc):
 
 
 @task
-def analysis(ref):
+def run_analysis(ref):
     logger = get_run_logger()
     run = tiled_client_raw[ref]
     full_uid = run.start["uid"]
@@ -328,4 +328,4 @@ def analysis(ref):
 
 @flow
 def analysis_flow(raw_ref):
-    analysis(raw_ref)
+    run_analysis(raw_ref)
