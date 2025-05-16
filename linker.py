@@ -10,7 +10,6 @@ import glob
 tiled_client = from_profile("nsls2")['cms']
 tiled_client_raw = tiled_client["raw"]
 
-logger = get_run_logger()
 #logger = logging.getLogger()
 
 
