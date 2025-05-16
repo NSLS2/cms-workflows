@@ -1,7 +1,9 @@
 from prefect import flow, get_run_logger, task
+from prefect.task_runners import ConcurrentTaskRunner
 
-from analysis import analysis_flow
-from data_validation import general_data_validation
+from analysis import run_analysis
+from data_validation import read_all_streams
+from linker import create_symlinks
 
 
 @task
@@ -10,10 +12,24 @@ def log_completion():
     logger.info("Complete")
 
 
-@flow
+@flow(task_runner=ConcurrentTaskRunner())
 def end_of_run_workflow(stop_doc):
+    logger = get_run_logger()
     uid = stop_doc["run_start"]
 
-    general_data_validation(beamline_acronym="cms", uid=uid)
+    # Launch validation, analysis, and linker tasks concurrently
+    linker_task = create_symlinks.submit(uid)
+    logger.info("Launched linker task")
 
-    # analysis_flow(raw_ref=uid)
+    validation_task = read_all_streams.submit(uid, beamline_acronym="smi")
+    logger.info("Launched validation task")
+
+    # analysis_task = run_analysis(raw_ref=uid)
+    # logger.info("Launched analysis task")
+
+    # Wait for all tasks to comple
+    logger.info("Waiting for tasks to complete")
+    linker_task.result()
+    validation_task.result()
+    # analysis_task.result()
+    log_completion()
