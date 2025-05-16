@@ -33,7 +33,7 @@ def detector_mapping(detector):
     return subdir, detname
 
 @task
-def create_symlinks(tiled_client_raw, ref):
+def create_symlinks(ref):
     """
     Parameters
     ----------
