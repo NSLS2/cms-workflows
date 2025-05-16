@@ -21,7 +21,7 @@ def end_of_run_workflow(stop_doc):
     linker_task = create_symlinks.submit(uid)
     logger.info("Launched linker task")
 
-    validation_task = read_all_streams.submit(uid, beamline_acronym="cms")
+    validation_task = read_all_streams.submit("cms", uid)
     logger.info("Launched validation task")
 
     # analysis_task = run_analysis(raw_ref=uid)
