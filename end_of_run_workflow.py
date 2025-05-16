@@ -1,7 +1,7 @@
 from prefect import flow, get_run_logger, task
 from prefect.task_runners import ConcurrentTaskRunner
 
-from analysis import run_analysis
+#from analysis import run_analysis
 from data_validation import read_all_streams
 from linker import create_symlinks
 
