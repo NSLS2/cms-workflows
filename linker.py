@@ -49,7 +49,11 @@ def create_symlinks(ref):
                 # NOTE: shortcut for the workflow before data security; to be removed later
                 return
             detectors = doc.get("detectors", [])
-            filename = doc.get("filename")
+            if filename := doc.get("filename"):
+                pass
+            else:
+                logger.info("Skipping the creation of the link because 'filename' is not set.")
+                return
             if link_root := doc.get("experiment_alias_directory"):
                 link_root = f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}/experiments/"+link_root
             else:
