@@ -49,7 +49,7 @@ def create_symlinks(ref):
                 # NOTE: shortcut for the workflow before data security; to be removed later
                 return
             detectors = doc.get("detectors", [])
-            savename = doc.get("savename")
+            filename = doc.get("filename")
             if link_root := doc.get("experiment_alias_directory"):
                 link_root = f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}/experiments/"+link_root
             else:
@@ -67,7 +67,7 @@ def create_symlinks(ref):
                     for file_path in glob.glob(prefix + "*"):
                         source_name = os.path.splitext(os.path.basename(file_path))[0]  # only file name w/o extension
                         name, indx = source_name.split("_")    # filename and index of the image
-                        link_path = Path(link_root) / subdir / f"{savename or name}_{indx}_{detname}.tiff"
+                        link_path = Path(link_root) / subdir / f"{filename or name}_{indx}_{detname}.tiff"
                         link_path.parent.mkdir(exist_ok=True, parents=True)
                         os.symlink(file_path, link_path)
                         logger.info(f"Linked: {file_path} to {link_path}")
