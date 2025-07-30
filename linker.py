@@ -61,6 +61,7 @@ def create_symlinks(ref):
                         # Define subfolders for "raw" and "analysis", but not for cameras
                         subdir_raw = "camera" if "webcam" in detname else f"{detname}/raw"
                         subdir_analysis = "camera" if "webcam" in detname else f"{detname}/analysis"
+                        subdir_data = 'data'
     
                         prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
                         for file_path in glob.glob(prefix + "*"):
@@ -72,6 +73,8 @@ def create_symlinks(ref):
                             logger.info(f"Linked: {file_path} to {link_path}")
 
                             (Path(link_root) / subdir_analysis).mkdir(exist_ok=True, parents=True)
+                            (Path(link_root) / subdir_data).mkdir(exist_ok=True, parents=True)
+                            
                             logger.info(f"Created analysis folder for {det}")
     
                         break
