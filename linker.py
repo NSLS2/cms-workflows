@@ -49,7 +49,12 @@ def create_symlinks(ref):
                 logger.info("Skipping the creation of the link because 'filename' is not set.")
                 return
             if link_root := doc.get("experiment_alias_directory"):
-                link_root = f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}/experiments/"+link_root
+                path_expr = Path(f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}/experiments")
+                path_expr.mkdir(exist_ok=True, parents=True)
+                path_expr.chmod(0o775)   # Allow group writing access
+                link_root = path_expr / link_root
+                link_root.mkdir(exist_ok=True, parents=True)
+                link_root.chmod(0o775)
             else:
                 logger.info("Directory for links is not specified; skipping.")
                 return
@@ -61,7 +66,11 @@ def create_symlinks(ref):
                         # Define subfolders for "raw" and "analysis", but not for cameras
                         subdir_raw = "camera" if "webcam" in detname else f"{detname}/raw"
                         subdir_analysis = "camera" if "webcam" in detname else f"{detname}/analysis"
-                        subdir_data = 'data'
+                        (Path(link_root) / subdir_analysis).mkdir(exist_ok=True, parents=True)
+                        (Path(link_root) / subdir_analysis).chmod(0o775)
+                        (Path(link_root) / 'data').mkdir(exist_ok=True, parents=True)
+                        (Path(link_root) / 'data').chmod(0o775)
+                        logger.info(f"Created analysis and data folders for {det}")
     
                         prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
                         for file_path in glob.glob(prefix + "*"):
@@ -69,14 +78,9 @@ def create_symlinks(ref):
                             name, indx = source_name.split("_")    # filename and index of the image
                             link_path = Path(link_root) / subdir_raw / f"{filename or name}_{indx}_{detname}.tiff"
                             link_path.parent.mkdir(exist_ok=True, parents=True)
+                            link_path.parent.chmod(0o775)
                             os.symlink(file_path, link_path)
                             logger.info(f"Linked: {file_path} to {link_path}")
-
-                            (Path(link_root) / subdir_analysis).mkdir(exist_ok=True, parents=True)
-                            (Path(link_root) / subdir_data).mkdir(exist_ok=True, parents=True)
-                            
-                            logger.info(f"Created analysis folder for {det}")
-    
                         break
             else:
                 logger.error(f"Resource document referencing unknown detector {det}.")
