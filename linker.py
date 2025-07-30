@@ -15,21 +15,15 @@ tiled_client_raw = tiled_client["raw"]
 
 def detector_mapping(detector):
     if detector in {"pilatus300k-1", "pilatus800k-2"}:
-        subdir = "maxs/raw"
-        detname = "maxs"
+        return "maxs"
     elif detector == "pilatus2m-1":
-        subdir = "saxs/raw"
-        detname = "saxs"
+        return "saxs"
     elif detector == "pilatus800k-1":
-        subdir = "waxs/raw"
-        detname = "waxs"
+        return "waxs"
     elif "webcam" in detector:
-        subdir = "camera"
-        detname = detector
+        return detector
     else:
-        return None, None
-    
-    return subdir, detname
+        return None
 
 @task
 def create_symlinks(ref):
@@ -63,19 +57,23 @@ def create_symlinks(ref):
         elif name == "resource":
             for det in detectors:
                 if det in doc["root"]:
-                    subdir, detname = detector_mapping(det)
-                    if subdir is None:
-                        continue
+                    if detname := detector_mapping(det):
+                        # Define subfolders for "raw" and "analysis", but not for cameras
+                        subdir_raw = detname if "webcam" in detname else f"{detname}/raw"
+                        subdir_analysis = detname if "webcam" in detname else f"{detname}/analysis"
+    
+                        prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
+                        for file_path in glob.glob(prefix + "*"):
+                            source_name = os.path.splitext(os.path.basename(file_path))[0]  # only file name w/o extension
+                            name, indx = source_name.split("_")    # filename and index of the image
+                            link_path = Path(link_root) / subdir_raw / f"{filename or name}_{indx}_{detname}.tiff"
+                            link_path.parent.mkdir(exist_ok=True, parents=True)
+                            os.symlink(file_path, link_path)
+                            logger.info(f"Linked: {file_path} to {link_path}")
 
-                    prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
-                    for file_path in glob.glob(prefix + "*"):
-                        source_name = os.path.splitext(os.path.basename(file_path))[0]  # only file name w/o extension
-                        name, indx = source_name.split("_")    # filename and index of the image
-                        link_path = Path(link_root) / subdir / f"{filename or name}_{indx}_{detname}.tiff"
-                        link_path.parent.mkdir(exist_ok=True, parents=True)
-                        os.symlink(file_path, link_path)
-                        logger.info(f"Linked: {file_path} to {link_path}")
-
-                    break
+                            (Path(link_root) / subdir_analysis).mkdir(exist_ok=True, parents=True)
+                            logger.info(f"Created analysis folder for {det}")
+    
+                        break
             else:
                 logger.error(f"Resource document referencing unknown detector {det}.")
