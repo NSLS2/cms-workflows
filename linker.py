@@ -59,8 +59,8 @@ def create_symlinks(ref):
                 if det in doc["root"]:
                     if detname := detector_mapping(det):
                         # Define subfolders for "raw" and "analysis", but not for cameras
-                        subdir_raw = detname if "webcam" in detname else f"{detname}/raw"
-                        subdir_analysis = detname if "webcam" in detname else f"{detname}/analysis"
+                        subdir_raw = "camera" if "webcam" in detname else f"{detname}/raw"
+                        subdir_analysis = "camera" if "webcam" in detname else f"{detname}/analysis"
     
                         prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
                         for file_path in glob.glob(prefix + "*"):
