@@ -25,6 +25,23 @@ def detector_mapping(detector):
     else:
         return None
 
+def chmod_recursive(path: Path, mode_files: int, mode_dirs: int):
+    """
+    Recursively changes permissions of files and directories within a given path.
+
+    Args:
+        path: The starting Path object for the recursive operation.
+        mode_files: The octal permission mode to apply to files and symlinks (e.g., 0o644).
+        mode_dirs: The octal permission mode to apply to directories (e.g., 0o755).
+    """
+    for entry in path.rglob('*'):  # iterate recursively through all files and directories
+        if entry.is_file():
+            entry.chmod(mode_files)
+        elif entry.is_symlink():
+            entry.chmod(mode_files)
+        elif entry.is_dir():
+            entry.chmod(mode_dirs)
+
 @task
 def create_symlinks(ref):
     """
@@ -49,12 +66,8 @@ def create_symlinks(ref):
                 logger.info("Skipping the creation of the link because 'filename' is not set.")
                 return
             if link_root := doc.get("experiment_alias_directory"):
-                path_expr = Path(f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}/experiments")
-                path_expr.mkdir(exist_ok=True, parents=True)
-                path_expr.chmod(0o775)   # Allow group writing access
-                link_root = path_expr / link_root
+                link_root = Path(f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}/experiments") / link_root
                 link_root.mkdir(exist_ok=True, parents=True)
-                link_root.chmod(0o775)
             else:
                 logger.info("Directory for links is not specified; skipping.")
                 return
@@ -67,9 +80,7 @@ def create_symlinks(ref):
                         subdir_raw = "camera" if "webcam" in detname else f"{detname}/raw"
                         subdir_analysis = "camera" if "webcam" in detname else f"{detname}/analysis"
                         (Path(link_root) / subdir_analysis).mkdir(exist_ok=True, parents=True)
-                        (Path(link_root) / subdir_analysis).chmod(0o775)
                         (Path(link_root) / 'data').mkdir(exist_ok=True, parents=True)
-                        (Path(link_root) / 'data').chmod(0o775)
                         logger.info(f"Created analysis and data folders for {det}")
     
                         prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
@@ -78,9 +89,10 @@ def create_symlinks(ref):
                             name, indx = source_name.split("_")    # filename and index of the image
                             link_path = Path(link_root) / subdir_raw / f"{filename or name}_{indx}_{detname}.tiff"
                             link_path.parent.mkdir(exist_ok=True, parents=True)
-                            link_path.parent.chmod(0o775)
                             os.symlink(file_path, link_path)
                             logger.info(f"Linked: {file_path} to {link_path}")
                         break
             else:
                 logger.error(f"Resource document referencing unknown detector {det}.")
+
+            chmod_recursive(link_root, 0o775, 0o775)
