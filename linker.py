@@ -23,6 +23,11 @@ def detector_mapping(detector):
     else:
         return None
 
+def chmod_and_chown(path, *, uid=None, gid=None, mode=0o770):
+    os.chmod(path, mode)
+    if uid is not None and gid is not None:
+        os.chown(path, uid, gid)
+
 @task
 def create_symlinks(ref):
     """
@@ -46,13 +51,15 @@ def create_symlinks(ref):
             else:
                 logger.info("Skipping the creation of the link because 'filename' is not set.")
                 return
-            if link_root := doc.get("experiment_alias_directory"):
-                path_expr = Path(f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}/experiments")
+            if path_expr_alias := doc.get("experiment_alias_directory"):
+                path_proposal = Path(f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}")
+                stats = path_proposal.stat()
+                path_expr = path_proposal / "experiments"   # experiments directory
                 path_expr.mkdir(exist_ok=True, parents=True)
-                path_expr.chmod(0o775)   # Allow group writing access
-                link_root = path_expr / link_root
-                link_root.mkdir(exist_ok=True, parents=True)
-                link_root.chmod(0o775)
+                chmod_and_chown(path_expr, uid=stats.st_uid, gid=stats.st_gid)
+                path_expr_alias = path_expr / path_expr_alias
+                path_expr_alias.mkdir(exist_ok=True, parents=True)
+                chmod_and_chown(path_expr_alias, uid=stats.st_uid, gid=stats.st_gid)
             else:
                 logger.info("Directory for links is not specified; skipping.")
                 return
@@ -64,20 +71,22 @@ def create_symlinks(ref):
                         # Define subfolders for "raw" and "analysis", but not for cameras
                         subdir_raw = "camera" if "webcam" in detname else f"{detname}/raw"
                         subdir_analysis = "camera" if "webcam" in detname else f"{detname}/analysis"
-                        (Path(link_root) / subdir_analysis).mkdir(exist_ok=True, parents=True)
-                        (Path(link_root) / subdir_analysis).chmod(0o775)
-                        (Path(link_root) / subdir_analysis).parent.chmod(0o775)    # either link_root/detname or link_root itself
-                        (Path(link_root) / 'data').mkdir(exist_ok=True, parents=True)
-                        (Path(link_root) / 'data').chmod(0o775)
+                        path_analysis = Path(path_expr_alias) / subdir_analysis
+                        path_analysis.mkdir(exist_ok=True, parents=True)
+                        chmod_and_chown(path_analysis, uid=stats.st_uid, gid=stats.st_gid)
+                        chmod_and_chown(path_analysis.parent, uid=stats.st_uid, gid=stats.st_gid)
+                        path_data = Path(path_expr_alias) / 'data'
+                        path_data.mkdir(exist_ok=True, parents=True)
+                        chmod_and_chown(path_data, uid=stats.st_uid, gid=stats.st_gid)
                         logger.info(f"Created analysis and data folders for {det}")
     
                         prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
                         for file_path in glob.glob(prefix + "*"):
                             source_name = os.path.splitext(os.path.basename(file_path))[0]  # only file name w/o extension
                             name, indx = source_name.split("_")    # filename and index of the image
-                            link_path = Path(link_root) / subdir_raw / f"{filename or name}_{indx}_{detname}.tiff"
+                            link_path = Path(path_expr_alias) / subdir_raw / f"{filename or name}_{indx}_{detname}.tiff"
                             link_path.parent.mkdir(exist_ok=True, parents=True)
-                            link_path.parent.chmod(0o775)
+                            chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
                             os.symlink(file_path, link_path)
                             logger.info(f"Linked: {file_path} to {link_path}")
                         break
