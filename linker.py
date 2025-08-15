@@ -23,10 +23,12 @@ def detector_mapping(detector):
     else:
         return None
 
-def chmod_and_chown(path, *, uid=None, gid=None, mode=0o770):
+def chmod_and_chown(path, *, uid=None, gid=None, mode=0o775):
     os.chmod(path, mode)
-    if uid is not None and gid is not None:
-        os.chown(path, uid, gid)
+
+    # The following needs to be tested more; Prefect worker account doesn't have permissions to chown
+    #if uid is not None and gid is not None:
+    #    os.chown(path, uid, gid)
 
 @task
 def create_symlinks(ref):
