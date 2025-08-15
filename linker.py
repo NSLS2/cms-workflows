@@ -44,6 +44,7 @@ def create_symlinks(ref):
         if name == "start":
             if doc.get('experiment_project'):
                 # NOTE: shortcut for the workflow before data security; to be removed later
+                logger.info("Skipping the creation of the link because 'experiment_project' is set.")
                 return
             detectors = doc.get("detectors", [])
             if filename := doc.get("filename"):
