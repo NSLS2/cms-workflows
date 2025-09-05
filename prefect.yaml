@@ -53,6 +53,7 @@ deployments:
           - /nsls2/software/etc/tiled:/nsls2/software/etc/tiled
           - /etc/bluesky:/etc/bluesky
           - /etc/ssl/certs:/etc/ssl/certs
+          - /etc/pki/ca-trust/extracted:/etc/pki/ca-trust/extracted
         container_create_kwargs:
           userns_mode: "keep-id:uid=402957,gid=402957"  # workflow-cms:workflow-cms
       name: cms-work-pool-docker
