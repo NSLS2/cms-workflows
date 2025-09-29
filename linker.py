@@ -59,10 +59,10 @@ def create_symlinks(ref):
                 stats = path_proposal.stat()
                 path_expr = path_proposal / "experiments"   # experiments directory
                 path_expr.mkdir(exist_ok=True, parents=True)
-                chmod_and_chown(path_expr, uid=stats.st_uid, gid=stats.st_gid)
+                #chmod_and_chown(path_expr, uid=stats.st_uid, gid=stats.st_gid)
                 path_expr_alias = path_expr / path_expr_alias
                 path_expr_alias.mkdir(exist_ok=True, parents=True)
-                chmod_and_chown(path_expr_alias, uid=stats.st_uid, gid=stats.st_gid)
+                #chmod_and_chown(path_expr_alias, uid=stats.st_uid, gid=stats.st_gid)
             else:
                 logger.info("Directory for links is not specified; skipping.")
                 return
