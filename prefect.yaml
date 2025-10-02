@@ -14,7 +14,7 @@ pull:
 
 deployments:
   - name: cms-end-of-run-workflow-docker
-    version: 0.1.1
+    version: 0.1.2
     description: Deploy the updated Docker image
     entrypoint: end_of_run_workflow.py:end_of_run_workflow
     parameters: {}
@@ -23,7 +23,6 @@ deployments:
       job_variables:
         env:
           TILED_SITE_PROFILES: /nsls2/software/etc/tiled/profiles
-          TILED_API_KEY: "{{ prefect.blocks.secret.tiled-cms-api-key }}"
         image: ghcr.io/nsls2/cms-workflows:main
         network: slirp4netns
         volumes:
