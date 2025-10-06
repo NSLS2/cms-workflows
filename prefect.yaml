@@ -27,6 +27,7 @@ deployments:
         env:
           TILED_SITE_PROFILES: /nsls2/software/etc/tiled/profiles
         image: ghcr.io/nsls2/cms-workflows:main
+        image_pull_policy: Always
         network: slirp4netns
         volumes:
           - /nsls2/data/cms/proposals:/nsls2/data/cms/proposals
