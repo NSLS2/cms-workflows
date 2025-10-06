@@ -1,11 +1,11 @@
 from prefect import task, get_run_logger
 from pathlib import Path
-from tiled.client import from_profile
+from utils import get_tiled_client
 import os
 import glob
 
 #tiled_client = from_uri('https://tiled.nsls2.bnl.gov')
-tiled_client = from_profile("nsls2")['cms']
+tiled_client = get_tiled_client()
 tiled_client_raw = tiled_client["raw"]
 
 #logger = logging.getLogger()
@@ -59,10 +59,10 @@ def create_symlinks(ref):
                 stats = path_proposal.stat()
                 path_expr = path_proposal / "experiments"   # experiments directory
                 path_expr.mkdir(exist_ok=True, parents=True)
-                chmod_and_chown(path_expr, uid=stats.st_uid, gid=stats.st_gid)
+                #chmod_and_chown(path_expr, uid=stats.st_uid, gid=stats.st_gid)
                 path_expr_alias = path_expr / path_expr_alias
                 path_expr_alias.mkdir(exist_ok=True, parents=True)
-                chmod_and_chown(path_expr_alias, uid=stats.st_uid, gid=stats.st_gid)
+                #chmod_and_chown(path_expr_alias, uid=stats.st_uid, gid=stats.st_gid)
             else:
                 logger.info("Directory for links is not specified; skipping.")
                 return
