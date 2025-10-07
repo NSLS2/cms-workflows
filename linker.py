@@ -1,11 +1,11 @@
 from prefect import task, get_run_logger
 from pathlib import Path
-from utils import get_tiled_client
+from tiled.client import from_profile
 import os
 import glob
 
 #tiled_client = from_uri('https://tiled.nsls2.bnl.gov')
-tiled_client = get_tiled_client()
+tiled_client = from_profile("nsls2")['cms']
 tiled_client_raw = tiled_client["raw"]
 
 #logger = logging.getLogger()
