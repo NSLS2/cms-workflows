@@ -11,6 +11,7 @@ import nslsii.kafka_utils
 
 import numpy as np
 from prefect import flow, get_run_logger, task
+from prefect.blocks.system import Secret
 from tiled.client import from_profile
 
 from ophyd.utils.epics_pvs import data_shape, data_type
@@ -18,7 +19,8 @@ from event_model import compose_run
 from typing import Iterable, TypedDict
 
 
-tiled_client = from_profile("nsls2")["cms"]
+api_key = Secret.load("tiled-cms-api-key").get()
+tiled_client = from_profile("nsls2", api_key=api_key)["cms"]
 tiled_client_raw = tiled_client["raw"]
 # tiled_client_processed = tiled_client["sandbox"]
 cms_sandbox_tiled_client = tiled_client["bluesky_sandbox"]

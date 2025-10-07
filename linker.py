@@ -1,11 +1,13 @@
 from prefect import task, get_run_logger
+from prefect.blocks.system import Secret
 from pathlib import Path
 from tiled.client import from_profile
 import os
 import glob
 
 #tiled_client = from_uri('https://tiled.nsls2.bnl.gov')
-tiled_client = from_profile("nsls2")['cms']
+api_key = Secret.load("tiled-cms-api-key").get()
+tiled_client = from_profile("nsls2", api_key=api_key)['cms']
 tiled_client_raw = tiled_client["raw"]
 
 #logger = logging.getLogger()
