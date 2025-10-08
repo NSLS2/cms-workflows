@@ -8,7 +8,7 @@ from tiled.client import from_profile
 @task(retries=2, retry_delay_seconds=10)
 def read_all_streams(beamline_acronym, uid):
     logger = get_run_logger()
-    api_key = Secret.load("tiled-cms-api-key").get()
+    api_key = Secret.load("tiled-cms-api-key", _sync=True).get()
     tiled_client = from_profile("nsls2", api_key=api_key)
     run = tiled_client[beamline_acronym]["raw"][uid]
     logger.info(f"Validating uid {run.start['uid']}")

@@ -19,7 +19,7 @@ from event_model import compose_run
 from typing import Iterable, TypedDict
 
 
-api_key = Secret.load("tiled-cms-api-key").get()
+api_key = Secret.load("tiled-cms-api-key", _sync=True).get()
 tiled_client = from_profile("nsls2", api_key=api_key)["cms"]
 tiled_client_raw = tiled_client["raw"]
 # tiled_client_processed = tiled_client["sandbox"]

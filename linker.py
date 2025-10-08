@@ -6,7 +6,7 @@ import os
 import glob
 
 #tiled_client = from_uri('https://tiled.nsls2.bnl.gov')
-api_key = Secret.load("tiled-cms-api-key").get()
+api_key = Secret.load("tiled-cms-api-key", _sync=True).get()
 tiled_client = from_profile("nsls2", api_key=api_key)['cms']
 tiled_client_raw = tiled_client["raw"]
 
