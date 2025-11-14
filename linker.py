@@ -96,7 +96,7 @@ def create_symlinks(ref):
                             prefix = str(Path(doc["root"]) / doc["resource_path"])
                             ext = doc["resource_path"].split('.')[-1]
                         else:
-                            print(f"The output for this spec has not been implemented yet. {doc['spec']}")
+                            logger.info(f"The output for this spec has not been implemented yet. {doc['spec']}")
                             return
     
                         for file_path in glob.glob(prefix + "*"):
@@ -104,7 +104,7 @@ def create_symlinks(ref):
                             name, indx = source_name.split("_")    # filename and index of the image
                             link_path = Path(path_expr_alias) / subdir_raw / f"{filename or name}_{indx}_{detname}.{ext}"
                             if link_path.exists():
-                                print("Scan was run already")
+                                logger.info("Scan was run already")
                             else:
                                 link_path.parent.mkdir(exist_ok=True, parents=True)
                                 chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
