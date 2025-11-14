@@ -50,7 +50,11 @@ def create_symlinks(ref):
                 # NOTE: shortcut for the workflow before data security; to be removed later
                 logger.info("Skipping the creation of the link because 'experiment_project' is set.")
                 return
-            detectors = doc.get("detectors", [])
+            if detectors := doc.get("detectors"):
+                pass
+            else:
+                logger.info("Not a measurement scan")
+                return
             if filename := doc.get("filename"):
                 pass
             else:
@@ -84,16 +88,28 @@ def create_symlinks(ref):
                         path_data.mkdir(exist_ok=True, parents=True)
                         chmod_and_chown(path_data, uid=stats.st_uid, gid=stats.st_gid)
                         logger.info(f"Created analysis and data folders for {det}")
+
+                        if 'TIFF' in doc['spec']:
+                            prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
+                            ext = doc["resource_kwargs"]["template"].split('.')[-1]
+                        elif 'HDF5' in doc['spec']:
+                            prefix = str(Path(doc["root"]) / doc["resource_path"])
+                            ext = doc["resource_path"].split('.')[-1]
+                        else:
+                            print(f"The output for this spec has not been implemented yet. {doc['spec']}")
+                            return
     
-                        prefix = str(Path(doc["root"]) / doc["resource_path"] / doc["resource_kwargs"]["filename"])
                         for file_path in glob.glob(prefix + "*"):
                             source_name = os.path.splitext(os.path.basename(file_path))[0]  # only file name w/o extension
                             name, indx = source_name.split("_")    # filename and index of the image
-                            link_path = Path(path_expr_alias) / subdir_raw / f"{filename or name}_{indx}_{detname}.tiff"
-                            link_path.parent.mkdir(exist_ok=True, parents=True)
-                            chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
-                            os.symlink(file_path, link_path)
-                            logger.info(f"Linked: {file_path} to {link_path}")
+                            link_path = Path(path_expr_alias) / subdir_raw / f"{filename or name}_{indx}_{detname}.{ext}"
+                            if link_path.exists():
+                                print("Scan was run already")
+                            else:
+                                link_path.parent.mkdir(exist_ok=True, parents=True)
+                                chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
+                                os.symlink(file_path, link_path)
+                                logger.info(f"Linked: {file_path} to {link_path}")
                         break
             else:
                 logger.error(f"Resource document referencing unknown detector {det}.")
