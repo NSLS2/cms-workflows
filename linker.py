@@ -62,7 +62,7 @@ def create_symlinks(ref):
                 return
             if path_expr_alias := doc.get("experiment_alias_directory"):
                 path_proposal = Path(f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}")
-                stats = path_proposal.stat()
+                # stats = path_proposal.stat()
                 path_expr = path_proposal / "experiments"   # experiments directory
                 path_expr.mkdir(exist_ok=True, parents=True)
                 #chmod_and_chown(path_expr, uid=stats.st_uid, gid=stats.st_gid)
@@ -82,11 +82,11 @@ def create_symlinks(ref):
                         subdir_analysis = "camera" if "webcam" in detname else f"{detname}/analysis"
                         path_analysis = Path(path_expr_alias) / subdir_analysis
                         path_analysis.mkdir(exist_ok=True, parents=True)
-                        chmod_and_chown(path_analysis, uid=stats.st_uid, gid=stats.st_gid)
-                        chmod_and_chown(path_analysis.parent, uid=stats.st_uid, gid=stats.st_gid)
+                        # chmod_and_chown(path_analysis, uid=stats.st_uid, gid=stats.st_gid)
+                        # chmod_and_chown(path_analysis.parent, uid=stats.st_uid, gid=stats.st_gid)
                         path_data = Path(path_expr_alias) / 'data'
                         path_data.mkdir(exist_ok=True, parents=True)
-                        chmod_and_chown(path_data, uid=stats.st_uid, gid=stats.st_gid)
+                        # chmod_and_chown(path_data, uid=stats.st_uid, gid=stats.st_gid)
                         logger.info(f"Created analysis and data folders for {det}")
 
                         if 'TIFF' in doc['spec']:
@@ -107,7 +107,7 @@ def create_symlinks(ref):
                                 logger.info("Scan was run already")
                             else:
                                 link_path.parent.mkdir(exist_ok=True, parents=True)
-                                chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
+                                # chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
                                 os.symlink(file_path, link_path)
                                 logger.info(f"Linked: {file_path} to {link_path}")
                         break
