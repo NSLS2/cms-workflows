@@ -4,11 +4,11 @@ name = "prefect3 test"
 platforms = ["linux-64"]
 
 [dependencies]
-prefect = "3.4.*"
-tiled-client = ">0.1.b035"
+prefect = "3.*"
+tiled-client = ">=0.2.3"
 python = "<3.12"
+bluesky-tiled-plugins = ">=2"
 prefect-docker = "*"
-databroker = "*"
 scitoolsscianalysis = "*"
 bluesky-kafka = "*"
 ophyd = "*"
