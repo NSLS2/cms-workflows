@@ -4,21 +4,39 @@ from prefect import flow, get_run_logger, task
 from prefect.blocks.system import Secret
 
 from bluesky_tiled_plugins.writing.validator import validate
-from tiled.client import from_profile
+from tiled.client import from_uri
 
 
 @task(retries=2, retry_delay_seconds=10)
-def read_all_streams(beamline_acronym, uid):
+def get_run(uid, api_key=None):
+    tiled_client = from_uri("https://tiled.nsls2.bnl.gov", api_key=api_key)
+    run = tiled_client["cms/raw"][uid]
+    return run
+
+
+@task(retries=2, retry_delay_seconds=10)
+def get_run_migration(uid, api_key=None):
+    tiled_client = from_uri("https://tiled.nsls2.bnl.gov", api_key=api_key)
+    run = tiled_client["cms/migration"][uid]
+    return run
+
+
+@task
+def read_stream(run, stream):
+    stream_data = run[stream].read()
+    return stream_data
+
+
+@task(retries=2, retry_delay_seconds=10)
+def read_all_streams(uid, api_key=None):
     logger = get_run_logger()
-    api_key = Secret.load("tiled-cms-api-key", _sync=True).get()
-    tiled_client = from_profile("nsls2", api_key=api_key)
-    run = tiled_client[beamline_acronym]["raw"][uid]
+    run = get_run(uid, api_key=api_key)
     logger.info(f"Validating uid {run.start['uid']}")
     start_time = time.monotonic()
     for stream in run:
         logger.info(f"{stream}:")
         stream_start_time = time.monotonic()
-        stream_data = run[stream].read()
+        stream_data = read_stream(run, stream)
         stream_elapsed_time = time.monotonic() - stream_start_time
         logger.info(f"{stream} elapsed_time = {stream_elapsed_time}")
         logger.info(f"{stream} nbytes = {stream_data.nbytes:_}")
@@ -27,7 +45,7 @@ def read_all_streams(beamline_acronym, uid):
 
 
 @task(retries=3, retry_delay_seconds=20)
-def data_validation_task(uid, beamline_acronym="cms"):
+def data_validation_task(uid, api_key=None):
     """Task to validate the data structure and accessibility in Tiled
 
     Parameters
@@ -39,20 +57,15 @@ def data_validation_task(uid, beamline_acronym="cms"):
     """
 
     logger = get_run_logger()
-
-    api_key = Secret.load(f"tiled-{beamline_acronym}-api-key", _sync=True).get()
-    tiled_client = from_profile("nsls2", api_key=api_key)
-
-    logger.info(f"Connecting to Tiled client for beamline '{beamline_acronym}'")
-    run_client = tiled_client[f"{beamline_acronym}/migration"][uid]
-
+    logger.info("Connecting to Tiled client for beamline cms")
+    run = get_run_migration(uid, api_key=api_key)
     logger.info(f"Validating uid {uid}")
     start_time = time.monotonic()
-    validate(run_client, fix_errors=True, try_reading=True, raise_on_error=True)
+    validate(run, fix_errors=True, try_reading=True, raise_on_error=True)
     elapsed_time = time.monotonic() - start_time
     logger.info(f"Finished validating data; {elapsed_time = }")
 
 
 @flow(log_prints=True)
-def data_validation_flow(uid):
-    data_validation_task(uid)
+def data_validation_flow(uid, api_key=None):
+    data_validation_task(uid, api_key=api_key)
