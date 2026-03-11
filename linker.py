@@ -1,16 +1,9 @@
 from prefect import task, get_run_logger
-from prefect.blocks.system import Secret
 from pathlib import Path
-from tiled.client import from_profile
 import os
 import glob
+from data_validation import get_run
 
-#tiled_client = from_uri('https://tiled.nsls2.bnl.gov')
-api_key = Secret.load("tiled-cms-api-key", _sync=True).get()
-tiled_client = from_profile("nsls2", api_key=api_key)['cms']
-tiled_client_raw = tiled_client["raw"]
-
-#logger = logging.getLogger()
 
 
 def detector_mapping(detector):
@@ -33,7 +26,7 @@ def chmod_and_chown(path, *, uid=None, gid=None, mode=0o775):
     #    os.chown(path, uid, gid)
 
 @task
-def create_symlinks(ref):
+def create_symlinks(ref, api_key=None):
     """
     Parameters
     ----------
@@ -43,7 +36,7 @@ def create_symlinks(ref):
     """
     logger = get_run_logger()
 
-    hrf = tiled_client_raw[ref]
+    hrf = get_run(ref, api_key=api_key)
     for name, doc in hrf.documents():
         if name == "start":
             if doc.get('experiment_project'):
