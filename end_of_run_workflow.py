@@ -22,14 +22,14 @@ def log_completion():
 
 
 @flow(task_runner=ConcurrentTaskRunner())
-def end_of_run_workflow(stop_doc, api_key=None):
+def end_of_run_workflow(stop_doc, api_key=None, dry_run=False):
     logger = get_run_logger()
     uid = stop_doc["run_start"]
     if not api_key:
         api_key = get_api_key_from_env()
 
     # Launch validation, analysis, and linker tasks concurrently
-    linker_task = create_symlinks.submit(uid, api_key=api_key)
+    linker_task = create_symlinks.submit(uid, api_key=api_key, dry_run=dry_run)
     logger.info("Launched linker task")
 
     read_streams_task = read_all_streams.submit(uid, api_key=api_key)

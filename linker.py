@@ -25,8 +25,8 @@ def chmod_and_chown(path, *, uid=None, gid=None, mode=0o775):
     #if uid is not None and gid is not None:
     #    os.chown(path, uid, gid)
 
-@task
-def create_symlinks(ref, api_key=None):
+@task(retries=2, retry_delay_seconds=10)
+def create_symlinks(ref, api_key=None, dry_run=False):
     """
     Parameters
     ----------
@@ -57,10 +57,16 @@ def create_symlinks(ref, api_key=None):
                 path_proposal = Path(f"/nsls2/data/cms/proposals/{doc['cycle']}/{doc['data_session']}")
                 # stats = path_proposal.stat()
                 path_expr = path_proposal / "experiments"   # experiments directory
-                path_expr.mkdir(exist_ok=True, parents=True)
+                if dry_run:
+                    logger.info(f"Dry run: mkdir {path_expr}")
+                else:
+                    path_expr.mkdir(exist_ok=True, parents=True)
                 #chmod_and_chown(path_expr, uid=stats.st_uid, gid=stats.st_gid)
                 path_expr_alias = path_expr / path_expr_alias
-                path_expr_alias.mkdir(exist_ok=True, parents=True)
+                if dry_run:
+                    logger.info(f"Dry run: mkdir {path_expr_alias}")
+                else:
+                    path_expr_alias.mkdir(exist_ok=True, parents=True)
                 #chmod_and_chown(path_expr_alias, uid=stats.st_uid, gid=stats.st_gid)
             else:
                 logger.info("Directory for links is not specified; skipping.")
@@ -74,11 +80,17 @@ def create_symlinks(ref, api_key=None):
                         subdir_raw = "camera" if "webcam" in detname else f"{detname}/raw"
                         subdir_analysis = "camera" if "webcam" in detname else f"{detname}/analysis"
                         path_analysis = Path(path_expr_alias) / subdir_analysis
-                        path_analysis.mkdir(exist_ok=True, parents=True)
+                        if dry_run:
+                            logger.info(f"Dry run: mkdir {path_analysis}")
+                        else:
+                            path_analysis.mkdir(exist_ok=True, parents=True)
                         # chmod_and_chown(path_analysis, uid=stats.st_uid, gid=stats.st_gid)
                         # chmod_and_chown(path_analysis.parent, uid=stats.st_uid, gid=stats.st_gid)
                         path_data = Path(path_expr_alias) / 'data'
-                        path_data.mkdir(exist_ok=True, parents=True)
+                        if dry_run:
+                            logger.info(f"Dry run: mkdir {path_data}")
+                        else:
+                            path_data.mkdir(exist_ok=True, parents=True)
                         # chmod_and_chown(path_data, uid=stats.st_uid, gid=stats.st_gid)
                         logger.info(f"Created analysis and data folders for {det}")
 
@@ -99,10 +111,14 @@ def create_symlinks(ref, api_key=None):
                             if link_path.exists():
                                 logger.info("Scan was run already")
                             else:
-                                link_path.parent.mkdir(exist_ok=True, parents=True)
-                                # chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
-                                os.symlink(file_path, link_path)
-                                logger.info(f"Linked: {file_path} to {link_path}")
+                                if dry_run:
+                                    logger.info(f"Dry run: mkdir {link_path}")
+                                    logger.info(f"Dry run: Linked: {file_path} to {link_path}")
+                                else:
+                                    link_path.parent.mkdir(exist_ok=True, parents=True)
+                                    # chmod_and_chown(link_path.parent, uid=stats.st_uid, gid=stats.st_gid)
+                                    os.symlink(file_path, link_path)
+                                    logger.info(f"Linked: {file_path} to {link_path}")
                         break
             else:
                 logger.error(f"Resource document referencing unknown detector {det}.")
