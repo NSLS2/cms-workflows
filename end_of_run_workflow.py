@@ -85,7 +85,6 @@ def log_completion():
 
 
 @flow(task_runner=ConcurrentTaskRunner())
-@flow(task_runner=ConcurrentTaskRunner())
 @slack
 def end_of_run_workflow(stop_doc, api_key=None, dry_run=False):
     logger = get_run_logger()
