@@ -18,7 +18,7 @@ CATALOG_NAME = "cms"
 def slack(func):
     """
     Send a message to mon-prefect and mon-prefect-cs slack channels if the flow-run failed.
-    Send a message to mon-prefect-srx slack channel with the flow-run status.
+    Send a message to mon-prefect-cms slack channel with the flow-run status.
     Send a message to mon-bluesky slack channel if the bluesky-run failed.
 
     NOTE: the name of this inner function is the same as the real end_of_workflow() function because
