@@ -1,21 +1,33 @@
+import os
 import time
 
 from prefect import flow, get_run_logger, task
-from prefect.blocks.system import Secret
 
 from bluesky_tiled_plugins.writing.validator import validate
 from tiled.client import from_uri
+from dotenv import load_dotenv
+
+
+def get_api_key_from_env(api_key=None):
+    with open("/srv/container.secret", "r") as secrets:
+        load_dotenv(stream=secrets)
+    api_key = os.environ["TILED_API_KEY"]
+    return api_key
 
 
 @task(retries=2, retry_delay_seconds=10)
 def get_run(uid, api_key=None):
+    if not api_key:
+        api_key = get_api_key_from_env()
     tiled_client = from_uri("https://tiled.nsls2.bnl.gov", api_key=api_key)
     run = tiled_client["cms/raw"][uid]
     return run
 
 
 @task(retries=2, retry_delay_seconds=10)
-def get_run_migration(uid, api_key=None):
+def get_run_migration(uid, api_key=None): # TODO remove after migration is complete and only raw is available
+    if not api_key:
+        api_key = get_api_key_from_env()
     tiled_client = from_uri("https://tiled.nsls2.bnl.gov", api_key=api_key)
     run = tiled_client["cms/migration"][uid]
     return run
