@@ -147,6 +147,8 @@ def end_of_run_workflow(
     pending = [linker_task, validation_task]
     stitch_task = None
 
+    stitch.enabled = False
+    
     if stitch.enabled:
         stitch_task = run_auto_stitch_anchor.submit(uid, api_key=api_key, stitch_config=stitch.config)
         logger.info("Launched anchor auto-stitch task")
