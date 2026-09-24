@@ -49,7 +49,7 @@
         "image_key": "pilatus300k-1_image",
         "position_prefix": "WAXS",
         "pixel_size_um": 172.0,
-        "mask_path": "configs/Dectris/Pilatus300k_gaps-mask.png"
+        "mask_path": "configs/Dectris/Pilatus300k_badpixel-mask.png"
       }
     ]
   },
