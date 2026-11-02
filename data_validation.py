@@ -1,5 +1,6 @@
 import os
-import time
+#import time
+import time as ttime
 
 from prefect import flow, get_run_logger, task
 
@@ -32,6 +33,30 @@ def get_run_migration(uid, api_key=None): # TODO remove after migration is compl
     return run
 
 
+# while using raw 2026-10
+@task(retries=2, retry_delay_seconds=10)
+def read_stream(run, stream):
+    return run[stream].read()
+
+
+# while using raw 2026-10
+@task
+def data_validation(uid, api_key=None, dry_run=False):
+    logger = get_run_logger()
+    logger.info(f"Validating uid {uid}")
+    start_time = ttime.monotonic()
+    run_client = get_run(uid, api_key=api_key)
+    for stream in run_client:
+        logger.info(f"{stream}:")
+        stream_start_time = ttime.monotonic()
+        stream_data = read_stream(run_client, stream)  # noqa: F841
+        stream_elapsed_time = ttime.monotonic() - stream_start_time
+        logger.info(f"{stream} elapsed_time = {stream_elapsed_time}")
+        logger.info(f"{stream} nbytes = {stream_data.nbytes:_}")
+    elapsed_time = ttime.monotonic() - start_time
+    logger.info(f"{elapsed_time = }")
+
+
 @task(retries=3, retry_delay_seconds=20)
 def data_validation_task(uid, api_key=None):
     """Task to validate the data structure and accessibility in Tiled
@@ -46,12 +71,14 @@ def data_validation_task(uid, api_key=None):
 
     logger = get_run_logger()
     logger.info("Connecting to Tiled client for beamline cms")
-    run = get_run_migration(uid, api_key=api_key)
-    logger.info(f"Validating uid {uid}")
-    start_time = time.monotonic()
-    run.validate(fix_errors=True, try_reading=True, raise_on_error=True)
-    elapsed_time = time.monotonic() - start_time
-    logger.info(f"Finished validating data; {elapsed_time = }")
+    run = get_run(uid, api_key=api_key)
+    data_validation(uid, api_key=api_key)
+    #run = get_run_migration(uid, api_key=api_key)
+    #logger.info(f"Validating uid {uid}")
+    #start_time = time.monotonic()
+    #run.validate(fix_errors=True, try_reading=True, raise_on_error=True)
+    #elapsed_time = time.monotonic() - start_time
+    #logger.info(f"Finished validating data; {elapsed_time = }")
 
 
 @flow(log_prints=True)
